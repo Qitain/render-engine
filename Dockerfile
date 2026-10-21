@@ -18,6 +18,7 @@ LABEL maintainer="DevOps Team" \
 # Explicit upstream release versions for reproducible builds
 ARG EASYTIER_VERSION="v2.6.4"
 ARG TTYD_VERSION="1.7.7"
+ARG SINGBOX_VERSION="v1.14.3"
 
 # Set environment
 ENV LANG=C.UTF-8 \
@@ -38,7 +39,6 @@ RUN apk update && \
       tmux \
       vim \
       caddy \
-      sing-box \
       tzdata \
       procps && \
     rm -rf /var/cache/apk/*
@@ -60,6 +60,17 @@ RUN set -eux; \
     echo "Downloading ttyd ${TTYD_VERSION}..."; \
     curl -sSL -o /usr/local/bin/ttyd "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64"; \
     chmod +x /usr/local/bin/ttyd
+
+# Download and install sing-box proxy platform
+RUN set -eux; \
+    echo "Downloading sing-box ${SINGBOX_VERSION}..."; \
+    SB_URL="https://github.com/SagerNet/sing-box/releases/download/${SINGBOX_VERSION}/sing-box-${SINGBOX_VERSION#v}-linux-amd64.tar.gz"; \
+    curl -sSL "$SB_URL" -o /tmp/sing-box.tar.gz; \
+    mkdir -p /tmp/sing-box; \
+    tar -xzf /tmp/sing-box.tar.gz -C /tmp/sing-box; \
+    find /tmp/sing-box -type f -name "sing-box" -exec cp {} /usr/local/bin/ \; ; \
+    chmod +x /usr/local/bin/sing-box; \
+    rm -rf /tmp/sing-box*
 
 # Copy compiled Komari telemetry agent
 COPY --from=agent-builder /usr/local/bin/komari-agent /usr/local/bin/komari-agent
